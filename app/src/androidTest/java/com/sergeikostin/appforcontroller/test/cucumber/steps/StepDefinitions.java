@@ -11,10 +11,7 @@ import com.sergeikostin.appforcontroller.test.cucumber.pages.MainScreen;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
-import java.net.Socket;
 
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
@@ -33,20 +30,15 @@ public class StepDefinitions extends ActivityInstrumentationTestCase2<MainActivi
     public static final String ESPRESSO_TAG = "Espresso";
     private MainScreen mCurrenScreen;
 
-    private ServerSocket server = null;
-    Socket client=null;
-
-    DataInputStream in;
-    DataOutputStream out;
-
-
     public StepDefinitions() {
         super(MainActivity.class);
         mCurrenScreen = new MainScreen();
 
   //      new Thread(initializeConnection).start();
         Log.d(ESPRESSO_TAG, "Instantiating connection");
-        initializeConnection1();
+        if(Globals.server == null) {
+            initializeConnection1();
+        }
     }
 
 
@@ -94,52 +86,50 @@ public class StepDefinitions extends ActivityInstrumentationTestCase2<MainActivi
 
     public void getPermission(){
         Log.d(ESPRESSO_TAG, "waitning for permission");
-        try {in.readUTF();}
+        try {Globals.in.readUTF();}
         catch (IOException e) {e.printStackTrace();}
     }
 
     public void givePermission(){
-        try {out.writeUTF("Device 2 go ahead");}
+        try {Globals.out.writeUTF("Device 2 go ahead");}
         catch (IOException e) {e.printStackTrace();}
     }
 
     public void initializeConnection1(){
             if(Globals.deviceId.equals("49f2ab21ab580b49")) {
                 Log.d(ESPRESSO_TAG,"Creating server on 38306");
-                try {server = new ServerSocket(38306);}
+                try {Globals.server = new ServerSocket(38306);}
                 catch (IOException e) {
                     Log.d(ESPRESSO_TAG,"Failed to create server on 38306");
                     e.printStackTrace();}
             }else{
                 Log.d(ESPRESSO_TAG,"Creating server on 38307");
-                try {server = new ServerSocket(38307);}
+                try {Globals.server = new ServerSocket(38307);}
                 catch (IOException e) {e.printStackTrace();}
             }
 
-            try {client = server.accept();}
+            try {Globals.client = Globals.server.accept();}
             catch (IOException e) {e.printStackTrace();}
 
             Log.d(ESPRESSO_TAG, "Accepted");
 
-            InputStream inFromServer = null;
-            try {inFromServer = client.getInputStream();}
+            try {Globals.inFromServer = Globals.client.getInputStream();}
             catch (IOException e) {e.printStackTrace();}
-            in = new DataInputStream(inFromServer);
+            Globals.in = new DataInputStream(Globals.inFromServer);
 
-            OutputStream outToServer = null;
-            try {outToServer = client.getOutputStream();
+            try {Globals.outToServer = Globals.client.getOutputStream();
             } catch (IOException e) {e.printStackTrace();}
-            out = new DataOutputStream(outToServer);
+            Globals.out = new DataOutputStream(Globals.outToServer);
     }
 
     @And("^I let device (\\d+) to finish its step$")
     public void I_let_device_to_finish_its_step(int device){
         if(Globals.deviceId.equals("49f2ab21ab580b49") && device == 2){
             Log.d(ESPRESSO_TAG, "Sending permission for device 2");
-            try {out.writeUTF("Device 2 go ahead");}
+            try {Globals.out.writeUTF("Device 2 go ahead");}
             catch (IOException e) {e.printStackTrace();}
         }else if(Globals.deviceId.equals("9a7dce0a74306064") && device == 1){
-            try {out.writeUTF("Device 1 go ahead");}
+            try {Globals.out.writeUTF("Device 1 go ahead");}
             catch (IOException e) {e.printStackTrace();}
         }
     }
